@@ -18,13 +18,6 @@ api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 discord_link = ""
 webhook = discord.Webhook.from_url(discord_link, adapter=discord.RequestsWebhookAdapter())
 
-#Opening follow.db
-try:
-  db = sqlite3.connect("follow.db")
-except Error as e:
-  print(e)
-cursor = db.cursor()
-
 
 def main():
   user = input("Please enter the twitter handle.\n")
@@ -37,6 +30,9 @@ def main():
 
   #ID of user
   userID = get_user(user).id_str
+
+  #Create database
+  createDatabase(userID)
 
   #Create table if doesn't exist
   cursor.execute("CREATE TABLE IF NOT EXISTS followings(twID INTEGER)")
@@ -105,5 +101,15 @@ def sendToDiscord(userName):
   link = "New followings detected!\n"+"https://twitter.com/" + userName 
   webhook.send(link)
 
+def createDatabase(userID):
+  try:
+    global db
+    db = sqlite3.connect(userID + ".db")
+  except Error as e:
+    print(e)
 
-main()
+  global cursor
+  cursor = db.cursor()  
+
+
+main()!
