@@ -8,7 +8,6 @@ import requests
 #Twitter Authentication
 consumer_key = ""
 consumer_secret = ""
-consumer_bearer_token = ""
 
 auth = tweepy.AppAuthHandler(consumer_key, consumer_secret)
 api = tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
@@ -43,7 +42,7 @@ def main():
   # Execute 1 min loop
   while True:
     print("Checking followers now...")
-    runMonitor(userID)
+    runMonitor(userID, user)
     print("Done.")
     time.sleep(62)
 
@@ -83,22 +82,22 @@ def firstRun(twID):
   return True
 
 #Subsequent runs to track for new followers
-def runMonitor(twID):
+def runMonitor(twID, user):
   ids = get_followingid(twID)
   for id in ids:
     cursor.execute("SELECT EXISTS(SELECT twID FROM followings WHERE twID=?)", (id,))
     if (cursor.fetchone()[0] == 0):
       cursor.execute("INSERT INTO followings VALUES(?)", (id, ))
       userName = get_user(id).screen_name
-      sendToDiscord(userName)
+      sendToDiscord(userName, user)
       print("User has followed: " + str(userName))
 
   db.commit()
   return
 
 #Send to discord webhook on new followers, called by runMonitor
-def sendToDiscord(userName):
-  link = "New followings detected!\n"+"https://twitter.com/" + userName 
+def sendToDiscord(userName, user):
+  link = user + " has followed:\n"+"https://twitter.com/" + userName 
   webhook.send(link)
 
 def createDatabase(userID):
